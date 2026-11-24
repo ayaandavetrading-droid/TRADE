@@ -1,0 +1,6 @@
+{
+  "name": "DayLock",
+  "description": "Trading discipline tracker, daily target locker, and life goals & deadlines planner with offline memory, cloud sync, and downloadable app & backups.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

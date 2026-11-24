@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "UserWorkspace": {
+      "title": "UserWorkspace",
+      "description": "User profile and DayLock trading discipline settings.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "email": { "type": "string", "maxLength": 160 },
+        "settings": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName", "settings", "createdAt", "updatedAt"]
+    },
+    "Trade": {
+      "title": "Trade",
+      "description": "An individual trading session execution logged by the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "date": { "type": "string", "minLength": 10, "maxLength": 10, "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "time": { "type": "string", "maxLength": 10 },
+        "symbol": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "side": { "type": "string", "enum": ["Buy", "Sell"] },
+        "lots": { "type": "number" },
+        "entry": { "type": "number" },
+        "exit": { "type": "number" },
+        "pnl": { "type": "number" },
+        "setup": { "type": "string", "maxLength": 40 },
+        "note": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "id", "date", "symbol", "side", "pnl", "createdAt", "updatedAt"]
+    },
+    "DayRecord": {
+      "title": "DayRecord",
+      "description": "Daily target lock state, checklist progress, and session journal note.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "date": { "type": "string", "minLength": 10, "maxLength": 10, "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "target": { "type": "number" },
+        "stop": { "type": "number" },
+        "closed": { "type": "boolean" },
+        "reopened": { "type": "boolean" },
+        "note": { "type": "string", "maxLength": 1000 },
+        "checks": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "closed", "reopened", "note", "checks", "createdAt", "updatedAt"]
+    },
+    "LifeGoal": {
+      "title": "LifeGoal",
+      "description": "A personal or financial life goal with a target deadline and milestone/numeric progress.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "priority": { "type": "string", "enum": ["High", "Medium", "Low"] },
+        "deadline": { "type": "string", "minLength": 10, "maxLength": 10, "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "progressType": { "type": "string", "enum": ["numeric", "milestones"] },
+        "currentValue": { "type": "number" },
+        "targetValue": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 20 },
+        "milestones": { "type": "array" },
+        "completed": { "type": "boolean" },
+        "completedAt": { "type": "string", "maxLength": 30 },
+        "note": { "type": "string", "maxLength": 600 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "id", "title", "category", "priority", "deadline", "progressType", "completed", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserWorkspace" },
+      "description": "Owner-only workspace settings and profile."
+    },
+    "/users/{userId}/trades/{tradeId}": {
+      "schema": { "$ref": "#/entities/Trade" },
+      "description": "User's individual trade logs."
+    },
+    "/users/{userId}/days/{dayKey}": {
+      "schema": { "$ref": "#/entities/DayRecord" },
+      "description": "User's daily lock states, checklist completions, and notes."
+    },
+    "/users/{userId}/lifeGoals/{goalId}": {
+      "schema": { "$ref": "#/entities/LifeGoal" },
+      "description": "User's life goals and target deadlines."
+    }
+  }
+}

@@ -1,0 +1,210 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidDateKey(d) {
+      return d is string && d.size() == 10 && d.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function hasValidSettings(s) {
+      return s is map
+        && s.keys().hasAll(['currency', 'balance', 'unit', 'target', 'stop', 'maxTrades', 'riskPct', 'pipValue', 'weekGoal', 'monthGoal', 'rules', 'why'])
+        && s.keys().hasOnly(['currency', 'balance', 'unit', 'target', 'stop', 'maxTrades', 'riskPct', 'pipValue', 'weekGoal', 'monthGoal', 'rules', 'why'])
+        && s.currency is string && s.currency.size() >= 1 && s.currency.size() <= 4
+        && s.balance is number && s.balance >= 0
+        && s.unit in ['amount', 'pct']
+        && s.target is number && s.target >= 0
+        && s.stop is number && s.stop >= 0
+        && s.maxTrades is number && s.maxTrades >= 0 && s.maxTrades <= 500
+        && s.riskPct is number && s.riskPct >= 0 && s.riskPct <= 100
+        && s.pipValue is number && s.pipValue >= 0
+        && s.weekGoal is number && s.weekGoal >= 0
+        && s.monthGoal is number && s.monthGoal >= 0
+        && s.rules is list && s.rules.size() <= 20
+        && (s.rules.size() == 0 || s.rules[0] is string)
+        && s.why is string && s.why.size() <= 500;
+    }
+
+    function isValidUserWorkspace(data, userId) {
+      return data.keys().hasAll(['userId', 'displayName', 'settings', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'displayName', 'email', 'settings', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && (!data.keys().hasAny(['email']) || (data.email is string && data.email.size() <= 160))
+        && hasValidSettings(data.settings)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTrade(data, userId, tradeId) {
+      return data.keys().hasAll(['userId', 'id', 'date', 'symbol', 'side', 'pnl', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'id', 'date', 'time', 'symbol', 'side', 'lots', 'entry', 'exit', 'pnl', 'setup', 'note', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id == tradeId
+        && isValidId(data.id)
+        && isValidDateKey(data.date)
+        && (!data.keys().hasAny(['time']) || (data.time is string && data.time.size() <= 10))
+        && data.symbol is string && data.symbol.size() >= 1 && data.symbol.size() <= 20
+        && data.side in ['Buy', 'Sell']
+        && (!data.keys().hasAny(['lots']) || data.lots == null || (data.lots is number && data.lots >= 0))
+        && (!data.keys().hasAny(['entry']) || data.entry == null || data.entry is number)
+        && (!data.keys().hasAny(['exit']) || data.exit == null || data.exit is number)
+        && data.pnl is number
+        && (!data.keys().hasAny(['setup']) || (data.setup is string && data.setup.size() <= 40))
+        && (!data.keys().hasAny(['note']) || (data.note is string && data.note.size() <= 500))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDayRecord(data, userId, dayKey) {
+      return data.keys().hasAll(['userId', 'date', 'closed', 'reopened', 'note', 'checks', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'date', 'target', 'stop', 'closed', 'reopened', 'note', 'checks', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.date == dayKey
+        && isValidDateKey(data.date)
+        && (!data.keys().hasAny(['target']) || data.target == null || (data.target is number && data.target >= 0))
+        && (!data.keys().hasAny(['stop']) || data.stop == null || (data.stop is number && data.stop >= 0))
+        && data.closed is bool
+        && data.reopened is bool
+        && data.note is string && data.note.size() <= 1000
+        && data.checks is list && data.checks.size() <= 25
+        && (data.checks.size() == 0 || data.checks[0] is number)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidLifeGoal(data, userId, goalId) {
+      return data.keys().hasAll(['userId', 'id', 'title', 'category', 'priority', 'deadline', 'progressType', 'completed', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'id', 'title', 'category', 'priority', 'deadline', 'progressType', 'currentValue', 'targetValue', 'unit', 'milestones', 'completed', 'completedAt', 'note', 'createdAt', 'updatedAt'])
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.id == goalId
+        && isValidId(data.id)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40
+        && data.priority in ['High', 'Medium', 'Low']
+        && isValidDateKey(data.deadline)
+        && data.progressType in ['numeric', 'milestones']
+        && (!data.keys().hasAny(['currentValue']) || data.currentValue is number)
+        && (!data.keys().hasAny(['targetValue']) || data.targetValue is number)
+        && (!data.keys().hasAny(['unit']) || (data.unit is string && data.unit.size() <= 20))
+        && (!data.keys().hasAny(['milestones']) || (data.milestones is list && data.milestones.size() <= 20 && (data.milestones.size() == 0 || data.milestones[0] is map)))
+        && data.completed is bool
+        && (!data.keys().hasAny(['completedAt']) || data.completedAt == null || (data.completedAt is string && data.completedAt.size() <= 30))
+        && (!data.keys().hasAny(['note']) || (data.note is string && data.note.size() <= 600))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserWorkspace(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserWorkspace(incoming(), userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'settings', 'updatedAt']);
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      match /trades/{tradeId} {
+        allow get: if isValidId(userId) && isValidId(tradeId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(tradeId)
+          && isOwner(userId)
+          && existsAfter(/databases/$(database)/documents/users/$(userId))
+          && isValidTrade(incoming(), userId, tradeId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId)
+          && isValidId(tradeId)
+          && isOwner(userId)
+          && isValidTrade(incoming(), userId, tradeId)
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['date', 'time', 'symbol', 'side', 'lots', 'entry', 'exit', 'pnl', 'setup', 'note', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidId(tradeId) && isOwner(userId);
+      }
+
+      match /days/{dayKey} {
+        allow get: if isValidId(userId) && isValidDateKey(dayKey) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidDateKey(dayKey)
+          && isOwner(userId)
+          && existsAfter(/databases/$(database)/documents/users/$(userId))
+          && isValidDayRecord(incoming(), userId, dayKey)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId)
+          && isValidDateKey(dayKey)
+          && isOwner(userId)
+          && isValidDayRecord(incoming(), userId, dayKey)
+          && incoming().userId == existing().userId
+          && incoming().date == existing().date
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['target', 'stop', 'closed', 'reopened', 'note', 'checks', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidDateKey(dayKey) && isOwner(userId);
+      }
+
+      match /lifeGoals/{goalId} {
+        allow get: if isValidId(userId) && isValidId(goalId) && isOwner(userId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(goalId)
+          && isOwner(userId)
+          && existsAfter(/databases/$(database)/documents/users/$(userId))
+          && isValidLifeGoal(incoming(), userId, goalId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+        allow update: if isValidId(userId)
+          && isValidId(goalId)
+          && isOwner(userId)
+          && isValidLifeGoal(incoming(), userId, goalId)
+          && incoming().userId == existing().userId
+          && incoming().id == existing().id
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'category', 'priority', 'deadline', 'progressType', 'currentValue', 'targetValue', 'unit', 'milestones', 'completed', 'completedAt', 'note', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidId(goalId) && isOwner(userId);
+      }
+    }
+  }
+}
