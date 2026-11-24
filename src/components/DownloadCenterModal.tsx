@@ -69,20 +69,21 @@ export const DownloadCenterModal: React.FC<Props> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#03121e]/65 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#03121e]/70"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#eef7fc] border border-white p-6 shadow-2xl text-[#0a1c2e]"
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-[#eef7fc] border border-white p-5 sm:p-6 pb-[max(20px,env(safe-area-inset-bottom,0px))] shadow-2xl text-[#0a1c2e] animate-sheet"
         role="dialog"
         aria-modal="true"
         aria-label="Download App and Backups"
       >
+        <div className="w-10 h-1 rounded-full bg-[#0a1c2e]/20 mx-auto mb-3 sm:hidden" aria-hidden="true" />
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold">Download App & Data</h2>
+            <h2 className="font-display text-lg font-semibold">Download App & Data</h2>
             <p className="text-xs text-[#4d6a80] mt-0.5">
               Install DayLock as a standalone offline app or download your memory & reports.
             </p>

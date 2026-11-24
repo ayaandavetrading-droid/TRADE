@@ -67,20 +67,23 @@ export const LifeGoalModal: React.FC<Props> = ({ open, editingGoal, defaultCurre
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#03121e]/65 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#03121e]/70"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-[#eef7fc] border border-white p-6 shadow-2xl text-[#0a1c2e] space-y-4"
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-[#eef7fc] border border-white p-5 sm:p-6 pb-[max(20px,env(safe-area-inset-bottom,0px))] shadow-2xl text-[#0a1c2e] space-y-4 animate-sheet"
         role="dialog"
         aria-modal="true"
         aria-label={editingGoal ? 'Edit life goal' : 'Add life goal'}
       >
+        <div className="w-10 h-1 rounded-full bg-[#0a1c2e]/20 mx-auto sm:hidden" aria-hidden="true" />
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{editingGoal ? 'Edit life goal' : 'Add life goal & deadline'}</h2>
+          <h2 className="font-display text-lg font-semibold">
+            {editingGoal ? 'Edit life goal' : 'Add life goal & deadline'}
+          </h2>
           <button
             type="button"
             onClick={onClose}

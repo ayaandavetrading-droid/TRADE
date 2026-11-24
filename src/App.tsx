@@ -489,8 +489,9 @@ export default function App() {
     .join('');
 
   return (
-    <div className="min-h-screen pb-20 md:pb-6">
-      <div className="max-w-[1380px] mx-auto px-3 sm:px-5 pt-3 sm:pt-4 grid grid-cols-1 md:grid-cols-[248px_minmax(0,1fr)] gap-4">
+    <div className="min-h-screen pb-[76px] md:pb-6">
+      <div className="ocean-backdrop" aria-hidden="true" />
+      <div className="max-w-[1380px] mx-auto px-2.5 sm:px-5 pt-2.5 sm:pt-4 grid grid-cols-1 md:grid-cols-[248px_minmax(0,1fr)] gap-3 sm:gap-4">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col sticky top-4 self-start h-[calc(100vh-32px)] min-h-[580px] rounded-[26px] p-4 glass-dark text-[#eaf6fb] shadow-2xl">
           <div className="flex items-center gap-3 px-1.5 pb-4">
@@ -580,12 +581,17 @@ export default function App() {
         {/* Main Column */}
         <div className="min-w-0 flex flex-col gap-3.5">
           {/* Top Bar */}
-          <header className="rounded-2xl px-3 py-2 glass-dark text-[#eaf6fb] flex items-center gap-2.5">
-            <div className="md:hidden w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
-              <Lock className="w-4 h-4 text-white" />
+          <header className="rounded-2xl px-2.5 sm:px-3 py-2 glass-dark text-[#eaf6fb] flex items-center gap-2 sm:gap-2.5">
+            <div className="md:hidden flex items-center gap-2 shrink-0 pr-1">
+              <div className="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-display text-lg font-semibold tracking-wide leading-none text-white">
+                Day<span className="text-[#ff6a1a]">Lock</span>
+              </span>
             </div>
 
-            <label className="flex-1 min-w-0 flex items-center gap-2 px-3 h-10 rounded-xl bg-white/10 border border-white/15 focus-within:border-white/40">
+            <label className="flex-1 min-w-0 flex items-center gap-2 px-2.5 sm:px-3 h-10 rounded-xl bg-white/10 border border-white/15 focus-within:border-white/40">
               <Search className="w-4 h-4 text-[#eaf6fb]/70 shrink-0" />
               <span className="sr-only">Search trades</span>
               <input
@@ -598,8 +604,8 @@ export default function App() {
                     navigate('trades');
                   }
                 }}
-                placeholder="Search trades by symbol, setup or note"
-                className="w-full min-w-0 bg-transparent border-0 outline-0 text-sm text-white placeholder:text-[#eaf6fb]/60"
+                placeholder="Search trades..."
+                className="w-full min-w-0 bg-transparent border-0 outline-0 text-xs sm:text-sm text-white placeholder:text-[#eaf6fb]/60"
               />
             </label>
 
@@ -657,8 +663,9 @@ export default function App() {
           </header>
 
           {/* Main Frosted Work Panel */}
-          <main className="glass-panel rounded-[26px] p-4 sm:p-6 min-w-0">
-            {activeTab === 'today' && (
+          <main className="glass-panel rounded-[22px] sm:rounded-[26px] p-3.5 sm:p-6 min-w-0">
+            <div key={activeTab} className="animate-view">
+              {activeTab === 'today' && (
               <TodayView
                 state={state}
                 onOpenTrade={(d) => setTradeModalDate(d)}
@@ -716,22 +723,23 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'rules' && (
-              <GoalsRulesView
-                state={state}
-                onSaveSettings={handleSaveSettings}
-                onOpenDownloadCenter={() => setDownloadModalOpen(true)}
-                onWipeAll={handleWipeAll}
-                onToast={showToast}
-              />
-            )}
+              {activeTab === 'rules' && (
+                <GoalsRulesView
+                  state={state}
+                  onSaveSettings={handleSaveSettings}
+                  onOpenDownloadCenter={() => setDownloadModalOpen(true)}
+                  onWipeAll={handleWipeAll}
+                  onToast={showToast}
+                />
+              )}
+            </div>
           </main>
         </div>
       </div>
 
       {/* Mobile Bottom Tab Bar (<= 15% viewport height, 44px+ hitboxes) */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-dark border-t border-white/15 px-1 py-1 grid grid-cols-6 items-center"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-dark border-t border-white/15 px-1 pt-1 pb-[max(4px,env(safe-area-inset-bottom,0px))] grid grid-cols-6 items-center"
         aria-label="Mobile navigation"
       >
         {NAV_ITEMS.map((item) => {
@@ -742,7 +750,7 @@ export default function App() {
               key={item.id}
               type="button"
               onClick={() => navigate(item.id)}
-              className={`min-h-[48px] flex flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium transition-colors ${
+              className={`min-h-[46px] flex flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium tap-press ${
                 active ? 'bg-[#1590f0] text-white' : 'text-[#eaf6fb]/80'
               }`}
             >
@@ -798,7 +806,7 @@ export default function App() {
       {toastMsg && (
         <div
           role="status"
-          className="fixed left-1/2 -translate-x-1/2 bottom-20 md:bottom-6 z-50 px-5 py-2.5 rounded-full bg-[#0a1c2e] text-white text-xs font-semibold shadow-xl border border-white/15 whitespace-nowrap"
+          className="fixed left-1/2 bottom-20 md:bottom-6 z-50 px-5 py-2.5 rounded-full bg-[#0a1c2e] text-white text-xs font-semibold shadow-xl border border-white/15 whitespace-nowrap animate-toast"
         >
           {toastMsg}
         </div>

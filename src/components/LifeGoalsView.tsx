@@ -103,21 +103,23 @@ export const LifeGoalsView: React.FC<Props> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#0a1c2e]">Life goals & deadlines</h1>
-          <p className="mt-1 text-sm text-[#2a465c]">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0a1c2e]">
+            Life goals & deadlines
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-[#2a465c]">
             Set clear deadlines for your financial, personal, and career targets — saved in your memory.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2">
           <button
             type="button"
             onClick={() => {
               exportLifeGoalsCsv(state);
               onToast('Life goals CSV downloaded');
             }}
-            className="h-10 px-4 rounded-xl bg-white/80 hover:bg-white border border-white text-sm font-semibold text-[#0a1c2e] inline-flex items-center gap-2 whitespace-nowrap"
+            className="h-11 sm:h-10 px-4 rounded-xl bg-white/85 hover:bg-white border border-white text-sm font-semibold text-[#0a1c2e] inline-flex items-center justify-center gap-2 whitespace-nowrap tap-press"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -125,7 +127,7 @@ export const LifeGoalsView: React.FC<Props> = ({
           <button
             type="button"
             onClick={onAddGoal}
-            className="h-10 px-4 rounded-xl bg-[#0a1c2e] hover:bg-[#13304a] text-white text-sm font-semibold inline-flex items-center gap-2 whitespace-nowrap"
+            className="h-11 sm:h-10 px-4 rounded-xl bg-[#0a1c2e] hover:bg-[#13304a] text-white text-sm font-semibold inline-flex items-center justify-center gap-2 whitespace-nowrap tap-press"
           >
             <Plus className="w-4 h-4" />
             Add life goal
